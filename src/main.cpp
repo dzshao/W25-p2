@@ -22,19 +22,16 @@ pair<double, uint64_t> search (const vector<datapoint> &, bool);
 double kFoldValidation (const vector<datapoint> &, uint64_t, int, bool);
 double calcDistance(const datapoint &, const datapoint &, uint64_t);
 
-void printBinary(uint64_t num) {
-    for (int i = 63; i >= 0; --i) {
-        // Check if the bit at position i is set (1) or not (0)
-        std::cout << ((num >> i) & 1);
-    }
-    std::cout << std::endl;
-}
 
 int main() {
     ifstream fin = ifstream("./data/CS170_Large_Data__1.txt");
-    // ifstream fin = ifstream("./data/testdata.txt");
+    if (!fin) {
+        cout << "Error opening file." << endl;
+        return -1; 
+    }
     string currLine = "";
     vector<datapoint> allPoints;
+
     double currFeature = 0;
     // Read in data from text file
     while (getline(fin, currLine)) {
@@ -46,27 +43,68 @@ int main() {
             allPoints.back().features.push_back(currFeature);
         }
     }
-    
-    // for (datapoint curr : allPoints) {
-    //     cout << curr.classification << endl;
-    //     for (double feat : curr.features) {
-    //         cout << setprecision(15) << feat << " ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << kFoldValidation(allPoints, (uint64_t(1) << 17) | (uint64_t(1) << 33), 24, true) << endl;
 
-    pair<double, uint64_t> result = search(allPoints, true);
-    cout << "Best accuracy: " << result.first << endl << "Best features: ";
     int size = allPoints.at(0).features.size();
+    cout << "Searching large dataset..." << endl << endl;
+    pair<double, uint64_t> result = search(allPoints, true);
+    cout << "Best accuracy with forward search: " << result.first << endl << "Best features: ";
     for (int i = 0; i < size; ++i) {
         if (result.second & (uint64_t(1) << i)) { 
             cout << i + 1 << ", ";
         }
     }
-    cout << endl;
+    cout << endl << endl;
 
-    // pair<double, uint64_t> backwardResult = search(allPoints, false);
+    pair<double, uint64_t> backwardResult = search(allPoints, false);
+    cout << "Best accuracy with backward search: " << backwardResult.first << endl << "Best features: ";
+    for (int i = 0; i < size; ++i) {
+        if (backwardResult.second & (uint64_t(1) << i)) { 
+            cout << i + 1 << ", ";
+        }
+    }
+    cout << endl << endl;
+    
+    cout << "Searching small dataset..." << endl << endl;
+
+    ifstream fin2 = ifstream("./data/CS170_Small_Data__106.txt");
+    if (!fin2) {
+        cout << "Error opening file." << endl;
+        return -1; 
+    }
+    string currLine2 = "";
+    vector<datapoint> allPoints2;
+
+    double currFeature2 = 0;
+    // Read in data from text file
+    while (getline(fin2, currLine2)) {
+        stringstream sin = stringstream(currLine2);
+        allPoints2.push_back({});
+
+        sin >> allPoints2.back().classification;
+        while (sin >> setprecision(15) >> currFeature2) {
+            allPoints2.back().features.push_back(currFeature2);
+        }
+    }
+
+    int size2 = allPoints2.at(0).features.size();
+    cout << "Searching large dataset..." << endl << endl;
+    pair<double, uint64_t> result2 = search(allPoints2, true);
+    cout << "Best accuracy with forward search: " << result2.first << endl << "Best features: ";
+    for (int i = 0; i < size2; ++i) {
+        if (result2.second & (uint64_t(1) << i)) { 
+            cout << i + 1 << ", ";
+        }
+    }
+    cout << endl << endl;
+
+    pair<double, uint64_t> backwardResult2 = search(allPoints2, false);
+    cout << "Best accuracy with backward search: " << backwardResult2.first << endl << "Best features: ";
+    for (int i = 0; i < size2; ++i) {
+        if (backwardResult2.second & (uint64_t(1) << i)) { 
+            cout << i + 1 << ", ";
+        }
+    }
+    cout << endl << endl;
 
     return 0;
 }
@@ -133,14 +171,14 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackwa
 }
 
 
-double kFoldValidation (const vector<datapoint> &data, uint64_t features, int newFeature, bool add) {
+double kFoldValidation (const vector<datapoint> &data, uint64_t features, int newFeature, bool forwardBackward) {
     int size = data.size();
 
     // Hidden data is the point removed from the dataset
     double correct = 0.0;
     uint64_t currFeatures = features;
     // Add feature if doing forward search, remove otherwise
-    if (add) {
+    if (forwardBackward) {
         currFeatures = features | (uint64_t(1) << newFeature);
     } else {
         currFeatures = features ^ (uint64_t(1) << newFeature);
