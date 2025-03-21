@@ -1,0 +1,46 @@
+Beginning search...
+
+	Using feature(s) {1} accuracy is 83.0%
+	Using feature(s) {2} accuracy is 70.0%
+	Using feature(s) {3} accuracy is 63.4%
+	Using feature(s) {4} accuracy is 72.0%
+	Using feature(s) {5} accuracy is 67.8%
+	Using feature(s) {6} accuracy is 69.0%
+
+Feature set {1} was best, accuracy is 83.0%
+
+	Using feature(s) {2} accuracy is 86.8%
+	Using feature(s) {3} accuracy is 85.8%
+	Using feature(s) {4} accuracy is 96.6%
+	Using feature(s) {5} accuracy is 81.2%
+	Using feature(s) {6} accuracy is 84.6%
+
+Feature set {1, 4} was best, accuracy is 96.6%
+
+	Using feature(s) {2} accuracy is 93.0%
+	Using feature(s) {3} accuracy is 93.8%
+	Using feature(s) {5} accuracy is 91.2%
+	Using feature(s) {6} accuracy is 94.8%
+
+Feature set {1, 4, 6} was best, accuracy is 94.8%
+(Warning, Accuracy has decreased! Continuing search in case of local maxima)
+
+	Using feature(s) {2} accuracy is 88.6%
+	Using feature(s) {3} accuracy is 87.0%
+	Using feature(s) {5} accuracy is 91.4%
+
+Feature set {1, 4, 5, 6} was best, accuracy is 91.4%
+(Warning, Accuracy has decreased! Continuing search in case of local maxima)
+
+	Using feature(s) {2} accuracy is 87.0%
+	Using feature(s) {3} accuracy is 86.2%
+
+Feature set {1, 2, 4, 5, 6} was best, accuracy is 87.0%
+(Warning, Accuracy has decreased! Continuing search in case of local maxima)
+
+	Using feature(s) {3} accuracy is 82.0%
+
+Feature set {1, 2, 3, 4, 5, 6} was best, accuracy is 82.0%
+(Warning, Accuracy has decreased! Continuing search in case of local maxima)
+
+Finished Search!! The best feature subset is {1, 4}, which has an accuracy of 96.6%
