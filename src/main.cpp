@@ -96,7 +96,7 @@ Set forwardSearch to true to use forward search, false for backward
 */
 pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardSearch = true) {
     int size = data.at(0).features.size();
-    
+    cout << "This dataset has " << size << " features (not including the class attribute), with " << data.size() << " instances." << endl;
     cout << "Beginning search..." << endl << endl;
     // Use bitfield to represent which features are included
     uint64_t includedFeatures = 0;
