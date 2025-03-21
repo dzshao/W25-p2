@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cfloat>
 #include <iomanip>
+#include <chrono>
 #include "../include/datapoint.hpp"
 
 using std::cout;
@@ -21,6 +22,10 @@ using std::fixed;
 using std::to_string;
 using std::max;
 
+using std::chrono::high_resolution_clock;
+using std::chrono::milliseconds;
+using std::chrono::duration_cast;
+
 pair<double, uint64_t> search (const vector<datapoint> &, bool);
 double kFoldValidation (const vector<datapoint> &, uint64_t, int, bool);
 double calcDistance(const datapoint &, const datapoint &, uint64_t);
@@ -30,7 +35,7 @@ void parseInput(string, vector<datapoint> &);
 int main() {
     int input = -1;
     while (!(input == 0 || input == 1)) {
-        cout << "Welcome to the Feature Selection Algortihm" << endl << "Enter 0 if you'd like to run default tests, or 1 if you'd like to run a custom test: ";
+        cout << "Welcome to the Daniel Shao Feature Selection Algortihm" << endl << "Enter 0 if you'd like to run default tests, or 1 if you'd like to run a custom test: ";
         cin >> input;
         cout << endl;
         if (input == 1) {
@@ -102,6 +107,8 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardSearch
     uint64_t includedFeatures = 0;
     uint64_t bestFeatures = 0;
     double overallBestAccuracy = 0.0;
+    
+    auto start = high_resolution_clock::now();
 
     // Include all features with backwards search
     if (!forwardSearch) {
@@ -114,6 +121,7 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardSearch
         overallBestAccuracy = max(overallBestAccuracy, 1.0 - overallBestAccuracy);
         cout << "Running nearest neighbor with no features, using 'leaving-one-out' evaluation, I get an accuracy of: " << fixed << setprecision(1) << overallBestAccuracy * 100 << "%" << endl;
     }
+    
     for (int i = 0; i < size; ++i) {
         
         // cout << "Level: " << i + 1 << endl;
@@ -159,7 +167,13 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardSearch
         // cout << fixed << setprecision(1) << overallBestAccuracy * 100 << "%" << endl;
         cout << endl;
     }
-    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(bestFeatures, size) << "}, which has an accuracy of " << fixed << setprecision(1) << overallBestAccuracy * 100 << "%";
+
+    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(bestFeatures, size) << "}, which has an accuracy of " << fixed << setprecision(1) << overallBestAccuracy * 100 << "%" << endl;
+    auto stop = high_resolution_clock::now();
+    auto timeSpent = duration_cast<milliseconds>(stop - start);
+
+    cout << "Time elapsed: " << setprecision(5) << timeSpent.count() / 1000.0 << " seconds" << endl;
+
     return {overallBestAccuracy, bestFeatures};
 }
 
