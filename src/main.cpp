@@ -24,83 +24,77 @@ pair<double, uint64_t> search (const vector<datapoint> &, bool);
 double kFoldValidation (const vector<datapoint> &, uint64_t, int, bool);
 double calcDistance(const datapoint &, const datapoint &, uint64_t);
 string convertBitfieldToFeatureSet(uint64_t, int);
+void parseInput(string, vector<datapoint> &);
 
 int main() {
-    
-    cout << "Searching large dataset..." << endl << endl;
+    int input = -1;
+    while (!(input == 0 || input == 1)) {
+        cout << "Welcome to the Feature Selection Algortihm" << endl << "Enter 0 if you'd like to run default tests, or 1 if you'd like to run a custom test: ";
+        cin >> input;
+        cout << endl;
+        if (input == 1) {
+            cout << "Type in the name of the file to test : ";
+            string fileName = "";
+            cin >> fileName;
+            cout << fileName << endl;
+            cout << endl;
 
-    ifstream fin = ifstream("./data/CS170_Large_Data__1.txt");
-    if (!fin) {
-        cout << "Error opening file." << endl;
-        return -1; 
-    }
-    string currLine = "";
-    vector<datapoint> allPoints;
+            int searchIn = 0;
+            bool searchType = false;
 
-    double currFeature = 0;
-    // Read in data from text file
-    while (getline(fin, currLine)) {
-        stringstream sin = stringstream(currLine);
-        allPoints.push_back({});
+            while (!(searchIn == 1 || searchIn == 2) && cin) {
+                cout << "Type the number of the algorithm you want to run.\n\t1) Forward Selection\n\t2) Backward Elimination " << endl;
+                cin >> searchIn;
+                if (searchIn == 1) {
+                    searchType = true;
+                } else if (searchIn == 2) {
+                    searchType = false;
+                } else {
+                    cout << "Invalid search." << endl;
+                }
+            }
 
-        sin >> allPoints.back().classification;
-        while (sin >> currFeature) {
-            allPoints.back().features.push_back(currFeature);
+            vector<datapoint> allPoints = {};
+            parseInput(fileName, allPoints);
+
+            pair<double, uint64_t> result = search(allPoints, searchType);
+            cout << endl << endl;
+        } else if (input == 0) {
+            cout << "Searching large dataset..." << endl << endl;
+
+            vector<datapoint> allPoints = {};
+            parseInput("./data/CS170_Large_Data__1.txt", allPoints);
+
+            int size = allPoints.at(0).features.size();
+            pair<double, uint64_t> result = search(allPoints, true);
+            cout << endl << endl;
+
+            pair<double, uint64_t> backwardResult = search(allPoints, false);
+            cout << endl << endl;
+
+
+            cout << "Searching small dataset..." << endl << endl;
+            
+            allPoints = {};
+            parseInput("./data/CS170_Small_Data__106.txt", allPoints);
+
+            int size2 = allPoints.at(0).features.size();
+            pair<double, uint64_t> result2 = search(allPoints, true);
+            cout << endl << endl;
+
+            pair<double, uint64_t> backwardResult2 = search(allPoints, false);
+            cout << endl << endl;
+        } else {
+            cout << "Invalid choice." << endl;
         }
     }
-
-    int size = allPoints.at(0).features.size();
-    pair<double, uint64_t> result = search(allPoints, true);
-    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(result.second, size) << "}, which has an accuracy of " << fixed << setprecision(1) << result.first * 100 << "%";
-    for (int i = 0; i < size; ++i) {
-        if (result.second & (uint64_t(1) << i)) { 
-            cout << i + 1 << ", ";
-        }
-    }
-    cout << endl << endl;
-
-    pair<double, uint64_t> backwardResult = search(allPoints, false);
-    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(backwardResult.second, size) << "}, which has an accuracy of " << fixed << setprecision(1) << backwardResult.first * 100 << "%";
-    cout << endl << endl;
-    
-    cout << "Searching small dataset..." << endl << endl;
-
-    ifstream fin2 = ifstream("./data/CS170_Small_Data__106.txt");
-    if (!fin2) {
-        cout << "Error opening file." << endl;
-        return -1; 
-    }
-    string currLine2 = "";
-    vector<datapoint> allPoints2;
-
-    double currFeature2 = 0;
-    // Read in data from text file
-    while (getline(fin2, currLine2)) {
-        stringstream sin = stringstream(currLine2);
-        allPoints2.push_back({});
-
-        sin >> allPoints2.back().classification;
-        while (sin >> currFeature2) {
-            allPoints2.back().features.push_back(currFeature2);
-        }
-    }
-
-    int size2 = allPoints2.at(0).features.size();
-    pair<double, uint64_t> result2 = search(allPoints2, true);
-    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(result2.second, size2) << "}, which has an accuracy of " << fixed << setprecision(1) << result2.first * 100 << "%";
-    cout << endl << endl;
-
-    pair<double, uint64_t> backwardResult2 = search(allPoints2, false);
-    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(backwardResult2.second, size2) << "}, which has an accuracy of " << fixed << setprecision(1) << backwardResult2.first * 100 << "%";
-    cout << endl << endl;
-
     return 0;
 }
 
 /* Searches for the best accuracy and the bitstream of features that yielded it
-Set forwardBackward to true to use forward search, false for backward
+Set forwardSearch to true to use forward search, false for backward
 */
-pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackward) {
+pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardSearch = true) {
     int size = data.at(0).features.size();
     
     cout << "Beginning search..." << endl << endl;
@@ -110,7 +104,7 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackwa
     double overallBestAccuracy = 0.0;
 
     // Include all features with backwards search
-    if (!forwardBackward) {
+    if (!forwardSearch) {
         includedFeatures = pow(2, data.at(0).features.size()) - 1;
         bestFeatures = pow(2, data.at(0).features.size()) - 1;
     }
@@ -122,7 +116,7 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackwa
         double bestAccuracy = 0.0;
         
         for (int j = 0; j < size; ++j) {
-            if (forwardBackward) {
+            if (forwardSearch) {
                 // Skip if feature is already included
                 if (includedFeatures & (uint64_t(1) << j)) {
                     continue;
@@ -134,7 +128,7 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackwa
                 }
             }
             // Find accuracy with including/excluding feature
-            double currAccuracy = kFoldValidation(data, includedFeatures, j, forwardBackward);
+            double currAccuracy = kFoldValidation(data, includedFeatures, j, forwardSearch);
             cout << "\tUsing feature(s) {" << j + 1 << "} accuracy is " << fixed << setprecision(1) << currAccuracy * 100 << "%" << endl;
             if (currAccuracy >= bestAccuracy) {
                 bestFeature = j;
@@ -142,7 +136,7 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackwa
             }
         }
 
-        if (forwardBackward) { 
+        if (forwardSearch) { 
             includedFeatures = includedFeatures | (uint64_t(1) << bestFeature);
         } else {
             includedFeatures = includedFeatures ^ (uint64_t(1) << bestFeature);
@@ -160,18 +154,20 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardBackwa
         // cout << fixed << setprecision(1) << overallBestAccuracy * 100 << "%" << endl;
         cout << endl;
     }
+    cout << "Finished Search!! The best feature subset is {" << convertBitfieldToFeatureSet(bestFeatures, size) << "}, which has an accuracy of " << fixed << setprecision(1) << overallBestAccuracy * 100 << "%";
     return {overallBestAccuracy, bestFeatures};
 }
 
-
-double kFoldValidation (const vector<datapoint> &data, uint64_t features, int newFeature, bool forwardBackward) {
+/* Uses leave one out validation with a nearest neighbor classifier to determine accuracy. */
+double kFoldValidation (const vector<datapoint> &data, uint64_t features, int newFeature, bool forwardSearch = true) {
     int size = data.size();
 
     // Hidden data is the point removed from the dataset
     double correct = 0.0;
     uint64_t currFeatures = features;
+
     // Add feature if doing forward search, remove otherwise
-    if (forwardBackward) {
+    if (forwardSearch) {
         currFeatures = features | (uint64_t(1) << newFeature);
     } else {
         currFeatures = features ^ (uint64_t(1) << newFeature);
@@ -214,6 +210,7 @@ double calcDistance(const datapoint &lhs, const datapoint &rhs, uint64_t feature
     return sqrt(sum);
 }
 
+// Creates a string to print out feature set from bitfield
 string convertBitfieldToFeatureSet(uint64_t bitfield, int size) {
     string result = "";
     for (int i = 0; i < size; ++i) {
@@ -225,4 +222,25 @@ string convertBitfieldToFeatureSet(uint64_t bitfield, int size) {
         return result.substr(0, result.size() - 2);
     }
     return "";
+}
+
+void parseInput(string fileName, vector<datapoint> &input) {
+    ifstream fin = ifstream(fileName);
+    if (!fin) {
+        cout << "Error opening file." << endl;
+        return;
+    }
+    string currLine = "";
+
+    double currFeature = 0;
+    // Read in data from text file
+    while (getline(fin, currLine)) {
+        stringstream sin = stringstream(currLine);
+        input.push_back({});
+
+        sin >> input.back().classification;
+        while (sin >> currFeature) {
+            input.back().features.push_back(currFeature);
+        }
+    }
 }
