@@ -19,6 +19,7 @@ using std::pair;
 using std::setprecision;
 using std::fixed;
 using std::to_string;
+using std::max;
 
 pair<double, uint64_t> search (const vector<datapoint> &, bool);
 double kFoldValidation (const vector<datapoint> &, uint64_t, int, bool);
@@ -36,7 +37,6 @@ int main() {
             cout << "Type in the name of the file to test : ";
             string fileName = "";
             cin >> fileName;
-            cout << fileName << endl;
             cout << endl;
 
             int searchIn = 0;
@@ -107,8 +107,13 @@ pair<double, uint64_t> search (const vector<datapoint> &data, bool forwardSearch
     if (!forwardSearch) {
         includedFeatures = pow(2, data.at(0).features.size()) - 1;
         bestFeatures = pow(2, data.at(0).features.size()) - 1;
+        overallBestAccuracy = kFoldValidation(data, includedFeatures, 0, !forwardSearch);
+        cout << "Running nearest neighbor with all " << size << " features, using 'leaving-one-out' evaluation, I get an accuracy of: " << fixed << setprecision(1) << overallBestAccuracy * 100 << "%" << endl;
+    } else {
+        overallBestAccuracy = kFoldValidation(data, includedFeatures, 0, !forwardSearch);
+        overallBestAccuracy = max(overallBestAccuracy, 1.0 - overallBestAccuracy);
+        cout << "Running nearest neighbor with no features, using 'leaving-one-out' evaluation, I get an accuracy of: " << fixed << setprecision(1) << overallBestAccuracy * 100 << "%" << endl;
     }
-
     for (int i = 0; i < size; ++i) {
         
         // cout << "Level: " << i + 1 << endl;
@@ -170,7 +175,7 @@ double kFoldValidation (const vector<datapoint> &data, uint64_t features, int ne
     if (forwardSearch) {
         currFeatures = features | (uint64_t(1) << newFeature);
     } else {
-        currFeatures = features ^ (uint64_t(1) << newFeature);
+        currFeatures = features & ((~uint64_t(0)) ^ (uint64_t(1) << newFeature));
     }
 
     // Iterate through all datapoints leaving out one each time
@@ -195,7 +200,7 @@ double kFoldValidation (const vector<datapoint> &data, uint64_t features, int ne
             correct += 1;
         }
     }
-    return correct / size;
+    return max(correct / size, 1 - (correct / size));
 }
 
 double calcDistance(const datapoint &lhs, const datapoint &rhs, uint64_t features) {
